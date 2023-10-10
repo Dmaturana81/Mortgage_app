@@ -170,17 +170,15 @@ def calcular_prestamo(m_type, taza, anos, value, entrada):
     else:
         mortgage = Mortgage_price(taza, anos, value, entrada, 40.32, 26)
     total, first, mid, last = mortgage.calculate_mortage()
-    df = mortgage.mortgage
-    print(df)
-    return mortgage.mortgage
+    print(total)
+    return mortgage.mortgage, total.round(2)
 
 
 def calcular_cuota(taza, anos, cuota):
     mortgage = Mortgage_price(taza, anos, MIP=40.32, DFI=26, TCA=25)
     value = mortgage.calcular_debt(cuota)
     mortgage = Mortgage_price(taza, anos, value*1.2, value*0.2, 40.32, 26)
-    df = mortgage.calculate_mortage()
-    print(df)
+    mortgage.calculate_mortage()
     return mortgage.mortgage
 
 
@@ -199,7 +197,10 @@ calcularPrestamo = st.sidebar.button('Calcular prestamos', 'Calcular_prestamo')
 
 
 if calculateButton:
-    df = calcular_prestamo(mortgage_type, taza, anos, value, entrada)
+    df, total = calcular_prestamo(mortgage_type, taza, anos, value, entrada)
+    a, b = st.columns(2)
+    with a:
+        st.metric('Valor Total Pagado', f"BRL {total}")
     st.dataframe(df.round(2))
     plot = px.line(
         data_frame=df,
@@ -214,7 +215,7 @@ if calculateButton:
     st.plotly_chart(plot)
 
 elif calcularPrestamo:
-    df = calcular_cuota(taza, anos, cuota)
+    df, total = calcular_cuota(taza, anos, cuota)
     a, b, c = st.columns(3)
     with a:
         st.metric('Valor Cuota', round(df.loc[0, 'total'], 2))
