@@ -3,6 +3,7 @@ import plotly.express as px
 from fastcore.all import *
 import pandas as pd
 import numpy as np
+from scipy import optimize
 
 pd.set_option('float_format', '{:.2f}'.format)
 
@@ -174,12 +175,16 @@ def calcular_prestamo(m_type, taza, anos, value, entrada):
     return mortgage.mortgage, total.round(2)
 
 
-def calcular_cuota(taza, anos, cuota):
+def calcular_cuota(taza, anos, cuota, total):
     mortgage = Mortgage_price(taza, anos, MIP=40.32, DFI=26, TCA=25)
     value = mortgage.calcular_debt(cuota)
-    mortgage = Mortgage_price(taza, anos, value*1.2, value*0.2, 40.32, 26)
+    increment = abs(total - value)
+    total = (value + increment)
+    entrada = total - value
+    mortgage = Mortgage_price(
+        taza, anos, total, entrada, 40.32, 26)
     mortgage.calculate_mortage()
-    return mortgage.mortgage
+    return mortgage.mortgage, total, entrada
 
 
 mortgage_type = st.sidebar.selectbox('Kind', ['SAC', 'PRICE'])
@@ -215,14 +220,15 @@ if calculateButton:
     st.plotly_chart(plot)
 
 elif calcularPrestamo:
-    df, total = calcular_cuota(taza, anos, cuota)
+    # print(calcular_cuota(taza, anos, cuota))
+    df, total, entrada = calcular_cuota(taza, anos, cuota, value)
     a, b, c = st.columns(3)
     with a:
-        st.metric('Valor Cuota', round(df.loc[0, 'total'], 2))
+        st.metric('Valor Cuota', round(cuota, 2))
     with b:
-        st.metric('Valor Propiedad', round(df.loc[0, 'devedor']*1.2, 2))
+        st.metric('Valor Propiedad', round(total, 2))
     with c:
-        st.metric('Valor Entrada', round(df.loc[0, 'devedor']*0.2, 2))
+        st.metric('Valor Entrada', round(entrada, 2))
 
     st.dataframe(df)
     plot = px.line(
@@ -236,5 +242,3 @@ elif calcularPrestamo:
             'index': 'Meses',
             'value': 'Reales'})
     st.plotly_chart(plot)
-
-# %%
