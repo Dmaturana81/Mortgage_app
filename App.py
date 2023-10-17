@@ -3,7 +3,6 @@ import plotly.express as px
 from fastcore.all import *
 import pandas as pd
 import numpy as np
-from scipy import optimize
 
 pd.set_option('float_format', '{:.2f}'.format)
 
